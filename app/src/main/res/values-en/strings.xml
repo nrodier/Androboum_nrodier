@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="title">The bombing application !</string>
+    <string name="boutonDemarrer">Start</string>
+    <string name="copyright">\@Nicolas Rodier - 2017</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_logout">Logout</string>
+    <string name="profilUtilisateur">User profile</string>
+    <string name="email">Email adress</string>
+    <string name="imageUploaded">The picture has been successfully upload on the cloud !</string>
+</resources>

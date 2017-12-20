@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Androboum_NicolasR</string>
+    <string name="title">L\'application qui fait boum !</string>
+    <string name="boutonDemarrer">Demarrer</string>
+    <string name="copyright">\@Nicolas Rodier - 2017</string>
+    <string name="action_settings">Parametres</string>
+    <string name="action_logout">Deconnexion</string>
+    <string name="facebook_application_id" translatable="false">1809914232370472</string>
+    <string name="facebook_login_protocol_scheme" translatable="false">fb1809914232370472</string>
+    <string name="profilUtilisateur">Profil Utilisateur</string>
+    <string name="email">Adresse email</string>
+    <string name="imageUploaded">L\'image a bien été stockée sur le cloud !</string>
+
+</resources>
