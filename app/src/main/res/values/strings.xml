@@ -10,5 +10,6 @@
     <string name="profilUtilisateur">Profil Utilisateur</string>
     <string name="email">Adresse email</string>
     <string name="imageUploaded">L\'image a bien été stockée sur le cloud !</string>
+    <string name="listeUtilisateur">Liste des utilisateurs</string>
 
 </resources>

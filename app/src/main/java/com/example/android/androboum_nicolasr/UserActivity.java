@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -41,6 +42,8 @@ public class UserActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 123;
     private static final int SELECT_PICTURE = 124;
     private Profil user = new Profil();
+    FirebaseAuth auth;
+    FirebaseDatabase database;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +52,8 @@ public class UserActivity extends AppCompatActivity {
         Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
         // on demande une instance du mécanisme d'authentification
-        FirebaseAuth auth = FirebaseAuth.getInstance();
+        auth = FirebaseAuth.getInstance();
+        database = FirebaseDatabase.getInstance();
         ImageView imageView = (ImageView) findViewById(R.id.imageView2);
         imageView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -78,6 +82,13 @@ public class UserActivity extends AppCompatActivity {
 //la paramétrant avec lesproviders google et facebook.
             startActivityForResult(AuthUI.getInstance().createSignInIntentBuilder().setAvailableProviders(Arrays.asList(new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build(), new AuthUI.IdpConfig.Builder(AuthUI.FACEBOOK_PROVIDER).build())).build(), 123);
         }
+        Button bouton = (Button) findViewById(R.id.button2);
+        bouton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                lancerListUser();
+            }
+        });
     }
 
     // cette méthode est appelée quand l'appel StartActivityForResult est terminé
@@ -160,6 +171,10 @@ public class UserActivity extends AppCompatActivity {
             case R.id.action_logout:
 // choix de l'action logout on déconnecte l'utilisateur
                 //Androboum_NicolasR.setIsConnected(false );
+                FirebaseUser fuser = auth.getCurrentUser();
+                DatabaseReference mreference = database.getReference().child("Users").child(fuser.getUid());
+                mreference.child("connected").setValue(false);
+
                 AuthUI.getInstance().signOut(this);
 // on termine l'activité
                 finish();
@@ -225,26 +240,12 @@ public class UserActivity extends AppCompatActivity {
         });
     }
 
-    private void
-    updateProfil(Profil user) {
-        DatabaseReference mDatabase = FirebaseDatabase.
-                getInstance
-                        ().getReference();
-        DatabaseReference ref = mDatabase.child(
-                "Users"
-        ).child(user.getUid());
-        ref.child(
-                "connected"
-        ).setValue(
-                true
-        );
-        ref.child(
-                "email"
-        ).setValue(user.getEmail());
-        ref
-                .child(
-                        "uid"
-                ).setValue(user.getUid());
+    private void updateProfil(Profil user) {
+        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference ref = mDatabase.child("Users").child(user.getUid());
+        ref.child("connected").setValue(true);
+        ref.child("email").setValue(user.getEmail());
+        ref.child("uid").setValue(user.getUid());
     }
 
     private void
@@ -268,9 +269,15 @@ public class UserActivity extends AppCompatActivity {
             if (fuser != null) {
                 final FirebaseDatabase mDatabase = FirebaseDatabase.getInstance();
                 DatabaseReference mreference = mDatabase.getReference().child("Users").child(fuser.getUid());
-                mreference.child("connected").setValue("false");
+                mreference.child("connected").setValue(false);
             }
         }
         super.onDestroy();
+    }
+
+    public void
+    lancerListUser() {
+        Intent intent = new Intent(this, UserListActivity.class);
+        startActivity(intent);
     }
 }

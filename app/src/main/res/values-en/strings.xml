@@ -8,4 +8,5 @@
     <string name="profilUtilisateur">User profile</string>
     <string name="email">Email adress</string>
     <string name="imageUploaded">The picture has been successfully upload on the cloud !</string>
+    <string name="listeUtilisateur">Users list</string>
 </resources>
