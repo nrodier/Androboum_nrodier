@@ -24,6 +24,9 @@ import com.firebase.ui.storage.images.FirebaseImageLoader;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -37,6 +40,7 @@ public class UserActivity extends AppCompatActivity {
     //  on choisit une valeur arbitraire pour représenter la connexion
     private static final int RC_SIGN_IN = 123;
     private static final int SELECT_PICTURE = 124;
+    private Profil user = new Profil();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +50,21 @@ public class UserActivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
         // on demande une instance du mécanisme d'authentification
         FirebaseAuth auth = FirebaseAuth.getInstance();
+        ImageView imageView = (ImageView) findViewById(R.id.imageView2);
+        imageView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Intent intent = new Intent();
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                Intent captureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                intent.setAction(Intent.ACTION_PICK);
+                Intent chooserIntent = Intent.createChooser(intent, "Image Chooser");
+                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Parcelable[]{captureIntent});
+                startActivityForResult(chooserIntent, SELECT_PICTURE);
+                return true;
+            }
+        });
 // la méthode ci-dessous renvoi l 'utilisateur connecté ou null si personne
         if (auth.getCurrentUser() != null) {
 // déjà connecté
@@ -53,25 +72,7 @@ public class UserActivity extends AppCompatActivity {
             TextView textView = (TextView) findViewById(R.id.myEmail);
             textView.setText(auth.getCurrentUser().getEmail());
             downloadImage();
-            
-            DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-            mDatabase.child("Users").child(user.getUid()).setValue(user);
-
-            ImageView imageView = (ImageView) findViewById(R.id.imageView2);
-            imageView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    Intent intent = new Intent();
-                    intent.setType("image/*");
-                    intent.setAction(Intent.ACTION_GET_CONTENT);
-                    Intent captureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                    intent.setAction(Intent.ACTION_PICK);
-                    Intent chooserIntent = Intent.createChooser(intent, "Image Chooser");
-                    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Parcelable[]{captureIntent});
-                    startActivityForResult(chooserIntent, SELECT_PICTURE);
-                    return true;
-                }
-            });
+            setUser();
         } else {
 // on lance l'activité qui gère l'écran de connexion en
 //la paramétrant avec lesproviders google et facebook.
@@ -91,22 +92,7 @@ public class UserActivity extends AppCompatActivity {
                 TextView textView = (TextView) findViewById(R.id.myEmail);
                 textView.setText(response.getEmail());
                 downloadImage();
-
-                ImageView imageView = (ImageView) findViewById(R.id.imageView2);
-                imageView.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        Intent intent = new Intent();
-                        intent.setType("image/*");
-                        intent.setAction(Intent.ACTION_GET_CONTENT);
-                        Intent captureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                        intent.setAction(Intent.ACTION_PICK);
-                        Intent chooserIntent = Intent.createChooser(intent, "Image Chooser");
-                        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Parcelable[]{captureIntent});
-                        startActivityForResult(chooserIntent, SELECT_PICTURE);
-                        return true;
-                    }
-                });
+                setUser();
                 return;
             } else {
 // echec de l'authentification
@@ -237,5 +223,54 @@ public class UserActivity extends AppCompatActivity {
                 toast.show();
             }
         });
+    }
+
+    private void
+    updateProfil(Profil user) {
+        DatabaseReference mDatabase = FirebaseDatabase.
+                getInstance
+                        ().getReference();
+        DatabaseReference ref = mDatabase.child(
+                "Users"
+        ).child(user.getUid());
+        ref.child(
+                "connected"
+        ).setValue(
+                true
+        );
+        ref.child(
+                "email"
+        ).setValue(user.getEmail());
+        ref
+                .child(
+                        "uid"
+                ).setValue(user.getUid());
+    }
+
+    private void
+    setUser() {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser fuser = auth.getCurrentUser();
+        if (fuser != null) {
+            user.setUid(fuser.getUid());
+            user.setEmail(fuser.getEmail());
+            user.setConnected(true);
+            updateProfil(user);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        user.setConnected(false);
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth != null) {
+            FirebaseUser fuser = auth.getCurrentUser();
+            if (fuser != null) {
+                final FirebaseDatabase mDatabase = FirebaseDatabase.getInstance();
+                DatabaseReference mreference = mDatabase.getReference().child("Users").child(fuser.getUid());
+                mreference.child("connected").setValue("false");
+            }
+        }
+        super.onDestroy();
     }
 }
